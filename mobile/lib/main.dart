@@ -11,7 +11,7 @@ import 'package:kmbal_movies_app/pages/movies/show.dart';
 import 'package:kmbal_movies_app/services/api_client.dart';
 import 'package:kmbal_movies_app/tokens.dart';
 
-import 'pages/movies/submit_view.dart';
+import 'pages/movies/submit_review.dart';
 
 void main() {
   Get.put(AuthController(), permanent: true);

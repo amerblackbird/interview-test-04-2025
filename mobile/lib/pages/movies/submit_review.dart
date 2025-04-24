@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:kmbal_movies_app/tokens.dart';
 
 import '../../controllers/movies_controller.dart';
-import '../../models/api_response.dart';
 
 class SubmitViewPage extends StatefulWidget {
   const SubmitViewPage({super.key});
