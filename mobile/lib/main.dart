@@ -11,6 +11,8 @@ import 'package:kmbal_movies_app/pages/movies/show.dart';
 import 'package:kmbal_movies_app/services/api_client.dart';
 import 'package:kmbal_movies_app/tokens.dart';
 
+import 'pages/movies/submit_view.dart';
+
 void main() {
   Get.put(AuthController(), permanent: true);
   Get.put(ApiClient(), permanent: true);
@@ -60,6 +62,12 @@ class MainApp extends StatelessWidget {
         GetPage(
           name: "/movies/show",
           page: () => const ShowMoviePage(),
+          middlewares: [AuthMiddleware()],
+          bindings: [MoviesBindings()],
+        ),
+        GetPage(
+          name: "/movies/show/review",
+          page: () => const SubmitViewPage(),
           middlewares: [AuthMiddleware()],
           bindings: [MoviesBindings()],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:kmbal_movies_app/controllers/auth_controller.dart';
 import 'package:kmbal_movies_app/controllers/movies_controller.dart';
 import 'package:kmbal_movies_app/models/movie.dart';
 import 'package:kmbal_movies_app/models/review.dart';
@@ -14,16 +15,38 @@ class ShowMoviePage extends StatefulWidget {
 
 class MoviesPageState extends State<ShowMoviePage> {
   final MoviesController _moviesController = Get.find();
+  final AuthController _authController = Get.find();
+
   late final Future<Movie> _movie = _moviesController.fetchMovie(
     Get.parameters['id']!,
   );
-  late final Future<List<Review>> _reviews =
-      _moviesController.fetchMovieReviews(
-    Get.parameters['id']!,
-  );
+
+  final RxList<Review> _reviews = <Review>[].obs;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReviews();
+  }
+
+  void _fetchReviews() async {
+    try {
+      final reviews = await _moviesController.fetchMovieReviews(
+        Get.parameters['id']!,
+      );
+      _reviews.assignAll(reviews);
+    } catch (e) {
+      // Handle error
+    }
+  }
+
+  bool hasUserReviewed(int userId) {
+    return _reviews.any((review) => review.userId == userId);
+  }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -33,6 +56,54 @@ class MoviesPageState extends State<ShowMoviePage> {
           ),
         ),
       ),
+      persistentFooterButtons: [
+        Obx(() {
+          final userId = _authController.userId;
+          final userHasReviewed = userId == null ? false : hasUserReviewed(userId);
+
+          return Row(
+            children: [
+              Expanded(
+                child: FilledButton(
+                  style: ButtonStyle(
+                    padding: WidgetStateProperty.all(
+                      EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    backgroundColor: WidgetStateProperty.resolveWith((state) {
+                      if (state.contains(WidgetState.disabled)) {
+                        return ColorTokens.lightBlue900;
+                      }
+                      return ColorTokens.darkBlue100;
+                    }),
+                  ),
+                  onPressed: userHasReviewed
+                      ? null
+                      : () async {
+                          final result = await Get.toNamed("/movies/show/review", parameters: {
+                            "id": Get.parameters['id']!,
+                          });
+                          if (result == true) {
+                            // Show success message
+                            //
+                            // Handle success
+                            Get.snackbar(
+                              "Success",
+                              "Review submitted successfully.",
+                              backgroundColor: Colors.green,
+                              colorText: Colors.white,
+                            );
+                            _fetchReviews();
+                          }
+                        },
+                  child: Text(
+                    userHasReviewed ? "Already Reviewed" : "Review",
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      ],
       body: SafeArea(
         child: ListView(
           children: [
@@ -74,26 +145,19 @@ class MoviesPageState extends State<ShowMoviePage> {
                     duration: Duration(milliseconds: 200),
                     child: SizedBox(
                       width: double.infinity,
-                      child: FutureBuilder(
-                        future: _reviews,
-                        builder: (context, snapshot) {
-                          if (snapshot.hasError) {
-                            return Text("Error loading movie reviews.");
-                          }
+                      child: Obx(() {
+                        if (_reviews.isEmpty) {
+                          return Text("No reviews yet.");
+                        }
 
-                          if (snapshot.hasData) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              mainAxisSize: MainAxisSize.min,
-                              children: snapshot.requireData
-                                  .map<Widget>((review) => ReviewItem(review))
-                                  .toList(),
-                            );
-                          }
-
-                          return Text("Loading reviews...");
-                        },
-                      ),
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: _reviews
+                              .map<Widget>((review) => ReviewItem(review))
+                              .toList(),
+                        );
+                      }),
                     ),
                   ),
                 ],

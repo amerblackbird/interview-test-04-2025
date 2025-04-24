@@ -20,6 +20,7 @@ class LoginController extends GetxController {
 
     if (response.kind == ApiResponseKind.ok) {
       _authController.setToken(response.data!.token);
+      _authController.setUserId(response.data!.id);
       Get.offAllNamed("/movies");
     }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:kmbal_movies_app/controllers/login_controller.dart';
@@ -96,6 +97,15 @@ class LoginFormState extends State<LoginForm> {
         controller.close();
         setState(() => _disabled = false);
       }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if(kDebugMode) {
+      _emailTextController.text = "testing1@gmail.com";
+      _passwordTextController.text = "Testing1";
     }
   }
 

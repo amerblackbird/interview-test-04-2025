@@ -9,10 +9,13 @@ import 'package:kmbal_movies_app/models/movies_index_response.dart';
 import 'package:kmbal_movies_app/models/reviews_index_response.dart';
 import 'package:kmbal_movies_app/models/validation_error_response.dart';
 
+import '../models/review.dart';
+
 abstract class _AbstractApiClient extends GetConnect {
   final AuthController _authController = Get.find();
 
-  final String _apiBaseUrl = "http://localhost:8000/api";
+  final String _apiBaseUrl = "http://192.168.8.202:8000/api";
+
   String _url(String path) => "$_apiBaseUrl$path";
 
   final Map<String, String> _headers = {
@@ -89,6 +92,24 @@ class MovieReviewsApiClient extends _AbstractApiClient {
       ReviewsIndexResponse.fromJson,
       await get(
         _url("/v1/movies/$movieId/reviews"),
+        headers: _headersWithAuth(),
+      ),
+    );
+  }
+
+  Future<ApiResponse<Review>> submitReview(
+    String id,
+    double rating,
+    String description,
+  ) async {
+    return _toApiResponse(
+      Review.fromJson,
+      await post(
+        _url("/v1/movies/$id/reviews"),
+        {
+          "rating": rating,
+          "review": description,
+        },
         headers: _headersWithAuth(),
       ),
     );

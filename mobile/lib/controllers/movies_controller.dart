@@ -36,4 +36,23 @@ class MoviesController extends GetxController {
 
     throw Exception("Failed to fetch movie reviews");
   }
+
+  Future<Review> submitReview(
+    String movieId,
+    double rating,
+    String description,
+  ) async {
+    final response = await _apiClient.movies.reviews
+        .submitReview(movieId, rating, description);
+
+    if (response.kind == ApiResponseKind.ok) {
+      return response.data!;
+    }
+    final result = Map.from(response.response.body ?? {});
+
+    if(result.containsKey("message")) {
+      throw Exception(result["message"]);
+    }
+    throw Exception("Failed to review movie");
+  }
 }
